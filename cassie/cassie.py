@@ -42,7 +42,8 @@ class CassieEnv:
         self.dynamics_randomization = dynamics_randomization
 
         # Arguments for reward function
-        self.reward_func = reward
+        # self.reward_func = reward
+        self.reward_func = reward if reward is not None else "default reward"
         self.early_term_cutoff = 0.3
 
         # State space

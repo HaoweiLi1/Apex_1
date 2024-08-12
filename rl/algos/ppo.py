@@ -390,7 +390,9 @@ class PPO:
             samp_time = time.time() - sample_start
             print("sample time elapsed: {:.2f} s".format(samp_time))
 
-            observations, actions, returns, values = map(torch.Tensor, batch.get())
+            # observations, actions, returns, values = map(torch.Tensor, batch.get())
+            observations, actions, returns, values = map(lambda x: torch.tensor(np.array(x)), batch.get())
+
 
             advantages = returns - values
             advantages = (advantages - advantages.mean()) / (advantages.std() + self.eps)
@@ -503,6 +505,15 @@ class PPO:
             if self.highest_reward < avg_eval_reward:
                 self.highest_reward = avg_eval_reward
                 self.save(policy, critic)
+
+            if (itr + 1) % 5 == 0:
+                actor_save_path = os.path.join(self.save_path, f"actor_{itr + 1:02d}.pt")
+                critic_save_path = os.path.join(self.save_path, f"critic_{itr + 1:02d}.pt")
+    
+                torch.save(policy, actor_save_path)
+                torch.save(critic, critic_save_path)
+    
+                print(f"Model saved at iteration {itr + 1} as {actor_save_path} and {critic_save_path}")
 
 def run_experiment(args):
     from util.env import env_factory

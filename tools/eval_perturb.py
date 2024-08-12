@@ -168,7 +168,9 @@ def compute_perturbs_multi(env_fn, policy, wait_time=4, perturb_duration=0.2, pe
     
     # Make and start all workers
     print("Using {} processes".format(num_procs))
-    ray.init(num_cpus=num_procs)
+    # ray.init(num_cpus=num_procs)
+    if not ray.is_initialized():
+        ray.init(address='auto')
     workers = [perturb_worker.remote(i, env_fn, policy, num_angles, wait_time, perturb_duration, perturb_size, perturb_incr, perturb_body) for i in range(num_procs)]
     print("made workers")
     eval_start = time.time()
