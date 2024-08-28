@@ -7,9 +7,16 @@ matplotlib==3.8.0
 numpy==1.24.4
 pandas==1.5.3
 psutil==6.0.0
+<<<<<<< HEAD
 # psutil==5.9.0
+=======
+psutil==5.9.0
+>>>>>>> 5be532695799298e9975d1eba423a21c37bcbaba
 pygame==2.6.0
 ray==2.34.0
 scipy==1.14.0
 torch==2.4.0
+<<<<<<< HEAD
 tensorboard==2.17.0
+=======
+>>>>>>> 5be532695799298e9975d1eba423a21c37bcbaba
