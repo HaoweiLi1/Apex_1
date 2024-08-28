@@ -3,11 +3,14 @@ import sys, pickle, argparse
 from util.logo import print_logo
 from util.log import parse_previous
 from util.eval import EvalProcessClass
+import warnings
 
 if __name__ == "__main__":
 
-    print_logo(subtitle="Maintained by Oregon State University's Dynamic Robotics Lab")
+    # print_logo(subtitle="Maintained by Oregon State University's Dynamic Robotics Lab") #useless 
     parser = argparse.ArgumentParser()
+
+    # warnings.filterwarnings("ignore", category=FutureWarning, message=".*torch.load.*")
 
     """
         General arguments for configuring the environment
@@ -251,6 +254,13 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         args = parse_previous(args)
+        
+        # fix bug of ray_init
+        import ray
+        if ray.is_initialized():
+            ray.init(address='auto')
+        else:
+            ray.init()
 
         run_experiment(args)
 

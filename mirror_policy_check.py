@@ -9,24 +9,22 @@ import numpy as np
 from functools import partial
 from rl.envs.wrappers import SymmetricEnv
 from cassie import CassieEnv, CassiePlayground, CassieStandingEnv, CassieEnv_noaccel_footdist_omniscient, CassieEnv_noaccel_footdist
+import torch.nn as nn
 
 def isData():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
 env = CassieEnv(state_est=True, dynamics_randomization=False, history=0)
 env_fn = partial(CassieEnv, state_est=True, dynamics_randomization=False, history=0)
-# env = CassieEnv_noaccel_footdist(state_est=True, dynamics_randomization=False, history=0)
-# env_fn = partial(CassieEnv_noaccel_footdist, state_est=True, dynamics_randomization=False, history=0)
+
 
 sym_env = SymmetricEnv(env_fn, mirrored_obs=env_fn().mirrored_obs, mirrored_act=[-5, -6, 7, 8, 9, -0.1, -1, 2, 3, 4])
-# obs = env.get_full_state()
-# print("obs len: ", len(obs))
-# exit()
 
-path = "./trained_models/nodelta_neutral_StateEst_symmetry_speed0-3_freq1-2/"
-# path = "./logs/footdist/CassieNoaccelFootDist/noaccel_footdist_speedmatch_seed10/"
+path = "./trained_models/ppo/Cassie-v0/experiment01/"
 policy = torch.load(path + "actor.pt")
 policy.eval()
+print("Policy loaded successfully.")
+print("Symmetric environment configured successfully.")
 
 old_settings = termios.tcgetattr(sys.stdin)
 
@@ -81,7 +79,8 @@ try:
             quaternion = euler2quat(z=orient_add, y=0, x=0)
             iquaternion = inverse_quaternion(quaternion)
 
-            if env.state_est:
+            #if env.state_est:
+            if hasattr(env, 'state_est') and env.state_est:
                 curr_orient = state[1:5]
                 curr_transvel = state[15:18]
                 # curr_orient = state[6:10]
@@ -97,7 +96,8 @@ try:
 
             new_translationalVelocity = rotate_by_quaternion(curr_transvel, iquaternion)
             
-            if env.state_est:
+            #if env.state_est:
+            if hasattr(env, 'state_est') and env.state_est:
                 state[1:5] = torch.FloatTensor(new_orient)
                 state[15:18] = torch.FloatTensor(new_translationalVelocity)
                 # state[6:10] = torch.FloatTensor(new_orient)
@@ -124,8 +124,16 @@ try:
                 mir_mir_action = sym_env.mirror_action(mir_action.unsqueeze(0)).detach().numpy()[0]
                 action = policy.forward(state, deterministic=True).detach().numpy()
             # print("mirror action diff: ", np.linalg.norm(mir_mir_action - action))
+                print("Action: ", action)
+                print("Mirrored Action: ", mir_mir_action)
             state, reward, done, _ = env.step(mir_mir_action)
-            
+
+            print("State after step: ", state)
+            torque = [env.cassie_state.motor.torque[i] for i in range(10)]
+            print("Torque: ", torque)
+            #print("Torque: ", env.cassie_state.motor.torque)
+            print("GRF: ", env.sim.get_foot_forces())
+
             eval_reward += reward
             timesteps += 1
 
